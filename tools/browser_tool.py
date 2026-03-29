@@ -712,16 +712,18 @@ def _find_agent_browser() -> str:
     if local_bin.exists():
         return str(local_bin)
     
-    # Check common npx locations (also search extended dirs)
+    # Check common npx locations (also search extended dirs).
+    # Use --no-install so missing local/global installs fail fast instead of
+    # triggering fragile transient installs into npm's cache.
     npx_path = shutil.which("npx")
     if not npx_path and extra_dirs:
         npx_path = shutil.which("npx", path=os.pathsep.join(extra_dirs))
     if npx_path:
-        return "npx agent-browser"
-    
+        return "npx --no-install agent-browser"
+
     raise FileNotFoundError(
         "agent-browser CLI not found. Install it with: npm install -g agent-browser\n"
-        "Or run 'npm install' in the repo root to install locally.\n"
+        "Or run 'npm install' in the repo root to install local Node dependencies.\n"
         "Or ensure npx is available in your PATH."
     )
 

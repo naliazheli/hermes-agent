@@ -1,0 +1,48 @@
+Use the preloaded agentcraft-worker skill.
+
+First call mcp_agentcraft_login_with_token using the JWT token from the AGENTCRAFT_TOKEN environment variable.
+Authenticate exactly once near the start. After the first successful login, treat authentication as complete and do not call either login tool again unless a later MCP tool explicitly returns an authentication error.
+
+Then:
+- list OPEN Agent Craft tasks
+- if the user asked for GitHub work, stay within GitHub-imported tasks only and say so plainly if there are none
+- if this run explicitly says it is GitHub-only, do not switch to custom programming or math tasks
+- when listing claimable tasks, exclude tasks created by the currently authenticated user
+- in GitHub-only mode, treat any task with `_count.submissions > 0` as unavailable even if it still appears as OPEN
+- if a GitHub-filtered task query returns zero tasks, stop there and report that no GitHub-imported tasks are available; do not run broader OPEN-task discovery as a fallback
+- inspect the most feasible one in detail
+- verify the upstream GitHub issue is still open before investing deeply in a GitHub-imported task
+- before any network clone or archive download, check for an existing local workspace mirror under `/mnt/e/code/aifactory/external/<repo-name>`, `/mnt/e/code/aifactory/external/<repo-name>-main`, or another obvious sibling path and reuse it if present
+- attempt to complete it only if it is realistically solvable from the current workspace
+- submit the result via MCP only if you completed real work
+- for `CODE_FIX_CANDIDATE` tasks, do not submit an investigation-only writeup as the final deliverable; submit only if you have a real code change, PR, or an explicitly requested reproduction/blocker package
+- if two GitHub tasks are similarly feasible, prefer the one with fewer existing comments to reduce stale-context risk
+- once you select the preferred GitHub task for investigation, stay on that task unless it is clearly closed, already completed, or blocked by missing prerequisites that the alternate task does not share
+- if the selected GitHub task is blocked by repository contribution policy or deliverable mismatch, stop the run after reporting that blocker; do not pivot to a second GitHub task in the same run
+
+If no task is realistically solvable, explain the blocker after checking the task details and leave a clarification comment on the best candidate task.
+
+Treat the current task payload as the source of truth. Do not infer current task state from old memory, earlier sessions, or remembered prior runs.
+For GitHub-imported tasks, ignore historical comments unless you explicitly call the task-comment listing tool for a narrow purpose. Old comments are not authoritative task requirements.
+Do not call the task-comment listing tool just to "get more context" on a GitHub fix task. Only read comments immediately before posting a necessary blocker/clarification comment.
+If a task is already clearly blocked by repository policy, do not read old task comments to reconfirm it unless you are about to post one final non-duplicate blocker comment.
+Do not paraphrase or restate old comments as if they were fresh findings.
+Do not manually retype or "fix up" a task ID from memory. Copy the exact task ID directly from the task listing or current task payload.
+
+At the end, reflect briefly on what the skill or service is still missing to make this workflow reliable.
+
+If you are running inside WSL and direct Linux access to GitHub fails, use `python scripts/windows_host_tools.py github-head`, `python scripts/windows_host_tools.py git-ls-remote <repo> [ref]`, `python scripts/windows_host_tools.py git-clone <repo> <destination>`, or `python scripts/windows_host_tools.py download-archive <owner> <repo> <ref> <destination>` before giving up.
+For public GitHub tasks, do not post a blocker comment until you have tried both repository access and archive-download fallback paths. Keep task comments sparse and high-signal.
+When working from an archive snapshot, establish the exact extracted repository root first and only then inspect or edit files. A `repo.zip` file by itself is not enough; verify the extracted directory and `repo_root.txt` marker before continuing. Do not post speculative root-cause comments before confirming them in source.
+Before posting any task comment, first decide whether a comment is actually necessary. For GitHub code-fix tasks, prefer zero comments unless you are blocked or need to ask for missing information. If you truly need a comment, read the existing task comments once so you do not repeat blocker updates. Do not post heading-only comments; every comment must include concrete evidence such as the exact command tried, the extracted repo path, or the observed failure.
+For GitHub-imported tasks, do not use `browser_*` tools unless the user explicitly asks for browser automation. Prefer MCP task detail, `curl`, `git`, and the local Windows bridge helpers for issue inspection and source access.
+When you need GitHub issue state or labels, prefer `python scripts/github_issue_probe.py <owner> <repo> <issue_number>`. If Linux-side GitHub API access fails, fall back to `python scripts/windows_host_tools.py github-issue <owner> <repo> <issue_number>`.
+Treat `python scripts/github_issue_probe.py ...` as the default first-line issue-state check, including inside WSL. Do not call `windows_host_tools.py github-issue` first unless the probe script itself fails or is unavailable.
+Do not use shell fallback chains such as `cmd1 || cmd2`, pipes into inline interpreters, or `python -c` / `python3 -c` for GitHub inspection. Use the helper script directly. If it fails, report that issue-state verification is unavailable and continue with other safe evidence or stop.
+Do not use `execute_code` for this workflow. Use normal shell commands, `read_file`, `search_files`, and the existing helper scripts from the repository workspace instead.
+The helper scripts already live under `scripts/` in this workspace. Do not claim they are missing unless a direct `ls scripts/<name>` check fails.
+If you confirm a local repository mirror already exists under `/mnt/e/code/aifactory/external/...`, stop re-checking helper-script availability and stop retrying network issue-state probes. Move directly into source inspection, local reproduction, and local verification against that mirror.
+Once a local mirror is found, prefer terminal exploration plus targeted `read_file` calls in that mirror. Do not spend more turns rediscovering the workspace layout.
+When a local mirror exists, do not call `mcp_agentcraft_list_task_comments` before the first real local reproduction or source inspection attempt. Old comments are stale context, not a starting point.
+When a local mirror exists, do not call `mcp_agentcraft_create_comment` until after you have attempted local reproduction or a concrete verification command. A comment before that point is almost always premature.
+After the issue is confirmed open and a local mirror exists, do not fetch broader GitHub issue details again unless the current task payload and local repo evidence still leave the reproduction scenario ambiguous.
