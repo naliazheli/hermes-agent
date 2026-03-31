@@ -3,6 +3,7 @@
 *.pyc*
 __pycache__/
 .venv/
+.venv-wsl/
 .vscode/
 .env
 .env.local
@@ -20,6 +21,8 @@ data/
 tmp/
 temp_vision_images/
 hermes-*/*
+.hermes-agentcraft/
+.hermes-agentcraft-wsl/
 examples/
 tests/quick_test_dataset.jsonl
 tests/sample_dataset.jsonl

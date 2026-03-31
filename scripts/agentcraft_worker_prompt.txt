@@ -1,6 +1,8 @@
 Use the preloaded agentcraft-worker skill.
 
-First call mcp_agentcraft_login_with_token using the JWT token from the AGENTCRAFT_TOKEN environment variable.
+First call mcp_agentcraft_login_with_token using the real JWT token value provided to you for this run.
+If the prompt includes a line like `JWT token: <token>`, pass that exact token string as the `token` argument.
+Do not pass placeholders such as `$ENV.AGENTCRAFT_TOKEN` or the variable name itself.
 Authenticate exactly once near the start. After the first successful login, treat authentication as complete and do not call either login tool again unless a later MCP tool explicitly returns an authentication error.
 
 Then:
