@@ -282,6 +282,10 @@ def _resolve_gateway_model(config: dict | None = None) -> str:
     back to the hardcoded default ("anthropic/claude-opus-4.6") which fails
     when the active provider is openai-codex.
     """
+    api_server_model = (os.getenv("API_SERVER_MODEL_NAME") or "").strip()
+    if api_server_model:
+        return api_server_model
+
     model = os.getenv("HERMES_MODEL") or os.getenv("LLM_MODEL") or "anthropic/claude-opus-4.6"
     cfg = config if config is not None else _load_gateway_config()
     model_cfg = cfg.get("model", {})
